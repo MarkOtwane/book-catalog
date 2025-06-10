@@ -40,9 +40,9 @@ export class BooksController {
     return this.booksService.update(title, data);
   }
 
-  @Delete('title/:title')
-  delete(@Param('title') title: string): Promise<{ message: string }> {
-    return this.booksService.delete(title);
+  @Delete(':id')
+  delete(@Param('title') id: number): Promise<{ message: string }> {
+    return this.booksService.delete(id);
   }
 
   @Get('search/title')

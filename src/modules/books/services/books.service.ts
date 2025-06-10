@@ -14,12 +14,12 @@ export class BooksService {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async create(data: BooksCreateDto): Promise<Books> {
-    const { title, author, isbn, publication_Date } = data;
+    const { title, author, isbn, publication_date } = data;
 
     try {
       const query = `
         INSERT INTO books (title, author, isbn, publication_date)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        VALUES ($1, $2, $3, $4, $5, $6) 
         RETURNING *
       `;
 
@@ -27,14 +27,14 @@ export class BooksService {
         title,
         author,
         isbn,
-        publication_Date,
+        publication_date,
       ]);
 
       return result.rows[0];
     } catch (error) {
       if (error.code === '23505') {
         throw new ConflictException(
-          'Book with the same ISBN or book number already exists',
+          'Book with the same ISBN already exists',
         );
       }
       throw new BadRequestException('Failed to create book');
@@ -43,22 +43,13 @@ export class BooksService {
 
   async findAll(): Promise<Books[]> {
     try {
-      const query = 'SELECT * FROM books ORDER BY created_at DESC';
+      const query = 'SELECT * FROM books ';
       const result = await this.databaseService.query(query);
-      return result.rows;
+      console.log(result);
+      return result;
     } catch (error) {
-      throw new BadRequestException('Failed to retrieve books');
+      throw new Error(error.message);
     }
-  }
-
-  async findOne(book_number: string): Promise<Books> {
-    const query = 'SELECT * FROM books WHERE book_number = $1';
-    const result = await this.databaseService.query(query, [book_number]);
-
-    if (result.rows.length === 0) {
-      throw new NotFoundException(`Book with number } not found`);
-    }
-    return result.rows[0];
   }
 
   async findByAuthor(author: string): Promise<Books[]> {
@@ -69,7 +60,7 @@ export class BooksService {
   }
 
   async update(title: string, data: BooksUpdateDto): Promise<Books> {
-    await this.findOne(title);
+    await this.findByAuthor(title);
 
     const updateFields: string[] = [];
     const values: any[] = [];
@@ -109,16 +100,16 @@ export class BooksService {
     }
   }
 
-  async delete(title: string): Promise<{ message: string }> {
-    const query = 'DELETE FROM books WHER = $1 RETURNIN';
-    const result = await this.databaseService.query(title);
+  async delete(id: number): Promise<{ message: string }> {
+    const query = 'DELETE FROM books WHERE = $1 RETURNIN';
+    const result = await this.databaseService.query(String(id));
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Book with number } not found`);
+      throw new NotFoundException(`Book with  ${id} not found`);
     }
 
     return {
-      message: `Book ${result.rows[0].title} permanently deleted`,
+      message: `Book ${result.rows[0].id} permanently deleted`,
     };
   }
 
