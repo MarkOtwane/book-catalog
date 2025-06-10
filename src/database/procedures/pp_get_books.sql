@@ -1,0 +1,15 @@
+CREATE OR REPLACE FUNCTION pp_get_books()
+RETURNS SETOF books AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM books ORDER BY author;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION pp_get_books_title()
+RETURNS SETOF books AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM books ORDER BY title;
+END;
+$$ LANGUAGE plpgsql;

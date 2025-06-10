@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
   ConflictException,
@@ -15,7 +11,7 @@ import { Books } from '../interfaces/book.interface';
 
 @Injectable()
 export class BooksService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(private readonly databaseService: DatabaseService) {}
 
   async create(data: BooksCreateDto): Promise<Books> {
     const { title, author, isbn, publication_Date } = data;
@@ -62,8 +58,6 @@ export class BooksService {
     if (result.rows.length === 0) {
       throw new NotFoundException(`Book with number } not found`);
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     return result.rows[0];
   }
 
