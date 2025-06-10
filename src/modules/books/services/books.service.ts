@@ -1,128 +1,140 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { DatabaseService } from '../../../database/database.service';
 import { BooksCreateDto } from '../dtos/create.dtos';
 import { BooksUpdateDto } from '../dtos/update.dtos';
 import { Books } from '../interfaces/book.interface';
 
 @Injectable()
 export class BooksService {
-  private books: Books[] = [
-    {
-      title: 'Think and Grow Rich',
-      book_number: 'TGR123',
-      author: 'Napolean Hill',
-      isbn: 'R1234',
-      genre: 'Finance',
-      publication_Date: new Date('12-12-2008'),
-    },
-    {
-      title: 'Think and Grow Rich',
-      book_number: 'TGR123',
-      author: 'Napolean Hill',
-      isbn: 'R1234',
-      genre: 'Finance',
-      publication_Date: new Date('12-12-2008'),
-    },
-    {
-      title: 'Think and Grow Rich',
-      book_number: 'TGR123',
-      author: 'Napolean Hill',
-      isbn: 'R1234',
-      genre: 'Finance',
-      publication_Date: new Date('12-12-2008'),
-    },
-  ];
+  constructor(private databaseService: DatabaseService) {}
 
-  create(data: BooksCreateDto): Books {
-    const availableBooks = this.books.find((book) => book.title === data.title);
+  async create(data: BooksCreateDto): Promise<Books> {
+    const { title, book_number, author, isbn, genre, publication_Date } = data;
 
-    if (availableBooks) {
-      throw new ConflictException(
-        `book with this title ${data.title} already exists`,
-      );
+    try {
+      const query = `
+        INSERT INTO books (title, book_number, author, isbn, genre, publication_date)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `;
+
+      const result = await this.databaseService.query(query, [
+        title,
+        book_number,
+        author,
+        isbn,
+        genre,
+        publication_Date,
+      ]);
+
+      return result.rows[0];
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException(
+          'Book with the same ISBN or book number already exists',
+        );
+      }
+      throw new BadRequestException('Failed to create book');
     }
-
-    const newbook: Books = {
-      title: data.title,
-      book_number: data.book_number,
-      author: data.author,
-      isbn: data.isbn,
-      genre: data.genre,
-      publication_Date: data.publication_Date,
-    };
-    this.books.push(newbook);
-    return newbook;
   }
 
-  findAll(): Books[] {
-    return this.books;
-  }
-
-  findOne(book_number: string): Books {
-    const book = this.books.find((book) => book.book_number === book_number);
-    if (!book) {
-      throw new ConflictException(`book with number ${book_number} not found`);
+  async findAll(): Promise<Books[]> {
+    try {
+      const query = 'SELECT * FROM books ORDER BY created_at DESC';
+      const result = await this.databaseService.query(query);
+      return result.rows;
+    } catch (error) {
+      throw new BadRequestException('Failed to retrieve books');
     }
-    return book;
   }
 
-  findByAuthor(author: string): Books {
-    const book = this.books.find((book) => book.author === author);
-    if (!book) {
-      throw new ConflictException(`book with author ${author} not found`);
-    }
-    return book;
-  }
+  async findOne(book_number: string): Promise<Books> {
+    const query = 'SELECT * FROM books WHERE book_number = $1';
+    const result = await this.databaseService.query(query, [book_number]);
 
-  findByBookNumber(book_number: string): Books {
-    const book = this.books.find((b) => b.book_number === book_number);
-    if (!book) {
+    if (result.rows.length === 0) {
       throw new NotFoundException(`Book with number ${book_number} not found`);
     }
-    return book;
+
+    return result.rows[0];
   }
 
-  update(book_number: string, data: BooksUpdateDto): Books {
-    const bookIndex = this.books.findIndex(
-      (book) => book.book_number === book_number,
-    );
+  async findByAuthor(author: string): Promise<Books[]> {
+    const query =
+      'SELECT * FROM books WHERE author ILIKE $1 ORDER BY title ASC';
+    const result = await this.databaseService.query(query, [`%${author}%`]);
+    return result.rows;
+  }
 
-    if (bookIndex === -1) {
-      throw new NotFoundException(`book with number ${book_number} not found`);
-    }
+  async update(book_number: string, data: BooksUpdateDto): Promise<Books> {
+    await this.findOne(book_number);
 
-    if (data.book_number) {
-      const existingbook = this.books.find(
-        (book) => book.book_number === data.book_number,
-      );
+    const updateFields = [];
+    const values = [];
+    let paramCount = 1;
 
-      if (existingbook) {
-        throw new ConflictException('Another book with this number exists');
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        updateFields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
       }
     }
 
-    this.books[bookIndex] = {
-      ...this.books[bookIndex],
-      ...data,
-    };
+    if (updateFields.length === 0) {
+      throw new BadRequestException('No fields to update');
+    }
 
-    return this.books[bookIndex];
+    const query = `
+      UPDATE books
+      SET ${updateFields.join(', ')}
+      WHERE book_number = $${paramCount}
+      RETURNING *
+    `;
+
+    values.push(book_number);
+
+    try {
+      const result = await this.databaseService.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new ConflictException(
+          'Another book with this ISBN or book number already exists',
+        );
+      }
+      throw new BadRequestException('Failed to update book');
+    }
   }
 
-  delete(book_number: string): { message: string } {
-    const bookIndex = this.books.findIndex(
-      (book) => book.book_number === book_number,
-    );
-    if (bookIndex === -1) {
-      throw new NotFoundException(`book with id ${book_number} not found`);
+  async delete(book_number: string): Promise<{ message: string }> {
+    const query =
+      'DELETE FROM books WHERE book_number = $1 RETURNING book_number';
+    const result = await this.databaseService.query(query, [book_number]);
+
+    if (result.rows.length === 0) {
+      throw new NotFoundException(`Book with number ${book_number} not found`);
     }
-    const deletebook = this.books.splice(bookIndex, 1)[0];
 
     return {
-      message: `book ${deletebook.book_number} permanently deleted`,
+      message: `Book ${result.rows[0].book_number} permanently deleted`,
     };
+  }
+
+  async searchByTitle(title: string): Promise<Books[]> {
+    const query = 'SELECT * FROM books WHERE title ILIKE $1 ORDER BY title ASC';
+    const result = await this.databaseService.query(query, [`%${title}%`]);
+    return result.rows;
+  }
+
+  async getBooksByGenre(genre: string): Promise<Books[]> {
+    const query = 'SELECT * FROM books WHERE genre ILIKE $1 ORDER BY title ASC';
+    const result = await this.databaseService.query(query, [`%${genre}%`]);
+    return result.rows;
   }
 }
