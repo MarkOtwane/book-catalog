@@ -8,7 +8,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DatabaseService } from '../../../database/database.service';
+import { DatabaseService } from 'src/database/connection.service';
 import { BooksCreateDto } from '../dtos/create.dtos';
 import { BooksUpdateDto } from '../dtos/update.dtos';
 import { Books } from '../interfaces/book.interface';

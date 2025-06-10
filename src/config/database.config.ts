@@ -12,7 +12,7 @@ export interface DatabaseConfig {
 export const databaseConfig: DatabaseConfig = {
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'bookCatalog',
+  database: process.env.DB_NAME || 'bookcatalog',
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'newpassword',
   ssl: process.env.NODE_ENV === 'production',
