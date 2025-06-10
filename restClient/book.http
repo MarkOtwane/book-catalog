@@ -1,27 +1,26 @@
+###
 POST http://localhost:3000/books
 Content-Type: application/json
 
- {
-   "title": "Things Fall Apart",
-   "author": "Chinua Achebe",
-   "publication_year": 1958,
-   "isbn": "978-1234567890"
- }
+{
+  "title": "Things Fall Apart",
+  "author": "Chinua Achebe",
+  "publication_year": 1958,
+  "isbn": "978-1234567890"
+}
 ###
-
-
-PUT http://localhost:3000/books
+PUT http://localhost:3000/books/1
 Content-Type: application/json
 
 {
   "title": "Things Fall Apart by Chinua Achebes"
 }
+
 ###
-
-
 DELETE http://localhost:3000/books/1
+
 ###
-
-
 GET http://localhost:3000/books
+
 ###
+GET http://localhost:3000/books?title=Things+Fall+Apart

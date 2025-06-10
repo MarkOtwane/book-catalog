@@ -116,6 +116,6 @@ export class BooksService {
   async searchByTitle(title: string): Promise<Books[]> {
     const query = 'SELECT * FROM books WHERE title ILIKE $1 ORDER BY title ASC';
     const result = await this.databaseService.query(query, [`%${title}%`]);
-    return result.rows;
+    return result;
   }
 }

@@ -32,16 +32,16 @@ export class BooksController {
     return this.booksService.findByAuthor(author);
   }
 
-  @Put('title/:title')
+  @Put(':id')
   update(
-    @Param('title') title: string,
+    @Param('id') id: number,
     @Body() data: BooksUpdateDto,
   ): Promise<Books> {
-    return this.booksService.update(title, data);
+    return this.booksService.update(String(id), data);
   }
 
   @Delete(':id')
-  delete(@Param('title') id: number): Promise<{ message: string }> {
+  delete(@Param('id') id: number): Promise<{ message: string }> {
     return this.booksService.delete(id);
   }
 
