@@ -5,6 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { text } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Pool, PoolClient } from 'pg';
@@ -43,10 +44,18 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Database connection established successfully');
 
       await this.runMigrations();
-    } catch (error) {
-      this.logger.error('Failed to connect to database:', error);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error('Failed to connect to database:', error.message);
+        throw error;
+      } else {
+        this.logger.error('Failed to connect to database:', String(error));
+        throw new Error(String(error));
+      }
     }
+  }
+  runMigrations() {
+    throw new Error('Method not implemented.');
   }
 
   async onModuleDestroy() {
@@ -64,26 +73,36 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   async query(text: string, params?: any[]) {
     const start = Date.now();
-    try {
-      const res = await this.pool.query(text, params);
-      const duration = Date.now() - start;
-      this.logger.debug(`Query executed in ${duration}ms: ${text}`);
-      return res;
-    } catch (error) {
-      this.logger.error(`Query failed: ${text}`, error);
-      throw error;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Query failed: ${text}`, error.message);
+        throw error;
+      } else {
+        this.logger.error(`Query failed: ${text}`, String(error));
+        throw new Error(String(error));
+      }
     }
-  }
-
-  private async runMigrations() {
+      return res;
+    } catch (error: any) {
+      this.logger.error(`Query failed: ${text}`, error?.message || error);
+      throw error;
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error('Migration failed:', error.message);
+        throw error;
+      } else {
+        this.logger.error('Migration failed:', String(error));
+        throw new Error(String(error));
+      }
+    }
     try {
       const migrationPath = path.join(__dirname, 'migrations', 'init.sql');
       const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
 
       await this.pool.query(migrationSQL);
       this.logger.log('Database migrations completed successfully');
-    } catch (error) {
-      this.logger.error('Migration failed:', error);
+    } catch (error: any) {
+      this.logger.error('Migration failed:', error?.message || error);
       throw error;
     }
   }

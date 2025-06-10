@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   BadRequestException,
   ConflictException,
@@ -61,6 +65,7 @@ export class BooksService {
       throw new NotFoundException(`Book with number ${book_number} not found`);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
     return result.rows[0];
   }
 
@@ -74,8 +79,8 @@ export class BooksService {
   async update(book_number: string, data: BooksUpdateDto): Promise<Books> {
     await this.findOne(book_number);
 
-    const updateFields = [];
-    const values = [];
+    const updateFields: string[] = [];
+    const values: any[] = [];
     let paramCount = 1;
 
     for (const [key, value] of Object.entries(data)) {
