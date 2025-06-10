@@ -18,21 +18,19 @@ export class BooksService {
   constructor(private databaseService: DatabaseService) {}
 
   async create(data: BooksCreateDto): Promise<Books> {
-    const { title, book_number, author, isbn, genre, publication_Date } = data;
+    const { title, author, isbn, publication_Date } = data;
 
     try {
       const query = `
-        INSERT INTO books (title, book_number, author, isbn, genre, publication_date)
+        INSERT INTO books (title, author, isbn, publication_date)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *
       `;
 
       const result = await this.databaseService.query(query, [
         title,
-        book_number,
         author,
         isbn,
-        genre,
         publication_Date,
       ]);
 
@@ -62,7 +60,7 @@ export class BooksService {
     const result = await this.databaseService.query(query, [book_number]);
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Book with number ${book_number} not found`);
+      throw new NotFoundException(`Book with number } not found`);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access
@@ -76,8 +74,8 @@ export class BooksService {
     return result.rows;
   }
 
-  async update(book_number: string, data: BooksUpdateDto): Promise<Books> {
-    await this.findOne(book_number);
+  async update(title: string, data: BooksUpdateDto): Promise<Books> {
+    await this.findOne(title);
 
     const updateFields: string[] = [];
     const values: any[] = [];
@@ -98,11 +96,11 @@ export class BooksService {
     const query = `
       UPDATE books
       SET ${updateFields.join(', ')}
-      WHERE book_number = $${paramCount}
+      WHER = $${paramCount}
       RETURNING *
     `;
 
-    values.push(book_number);
+    values.push(title);
 
     try {
       const result = await this.databaseService.query(query, values);
@@ -117,29 +115,22 @@ export class BooksService {
     }
   }
 
-  async delete(book_number: string): Promise<{ message: string }> {
-    const query =
-      'DELETE FROM books WHERE book_number = $1 RETURNING book_number';
-    const result = await this.databaseService.query(query, [book_number]);
+  async delete(title: string): Promise<{ message: string }> {
+    const query = 'DELETE FROM books WHER = $1 RETURNIN';
+    const result = await this.databaseService.query(title);
 
     if (result.rows.length === 0) {
-      throw new NotFoundException(`Book with number ${book_number} not found`);
+      throw new NotFoundException(`Book with number } not found`);
     }
 
     return {
-      message: `Book ${result.rows[0].book_number} permanently deleted`,
+      message: `Book ${result.rows[0].title} permanently deleted`,
     };
   }
 
   async searchByTitle(title: string): Promise<Books[]> {
     const query = 'SELECT * FROM books WHERE title ILIKE $1 ORDER BY title ASC';
     const result = await this.databaseService.query(query, [`%${title}%`]);
-    return result.rows;
-  }
-
-  async getBooksByGenre(genre: string): Promise<Books[]> {
-    const query = 'SELECT * FROM books WHERE genre ILIKE $1 ORDER BY title ASC';
-    const result = await this.databaseService.query(query, [`%${genre}%`]);
     return result.rows;
   }
 }

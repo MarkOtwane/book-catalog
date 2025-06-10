@@ -27,38 +27,26 @@ export class BooksController {
     return this.booksService.findAll();
   }
 
-  @Get('book_number/:book_number')
-  findOne(@Param('book_number') book_number: string): Promise<Books> {
-    return this.booksService.findOne(book_number);
-  }
-
   @Get('author/:author')
   findByAuthor(@Param('author') author: string): Promise<Books[]> {
     return this.booksService.findByAuthor(author);
   }
 
-  @Put('book_number/:book_number')
+  @Put('title/:title')
   update(
-    @Param('book_number') book_number: string,
+    @Param('title') title: string,
     @Body() data: BooksUpdateDto,
   ): Promise<Books> {
-    return this.booksService.update(book_number, data);
+    return this.booksService.update(title, data);
   }
 
-  @Delete('book_number/:book_number')
-  delete(
-    @Param('book_number') book_number: string,
-  ): Promise<{ message: string }> {
-    return this.booksService.delete(book_number);
+  @Delete('title/:title')
+  delete(@Param('title') title: string): Promise<{ message: string }> {
+    return this.booksService.delete(title);
   }
 
   @Get('search/title')
   searchByTitle(@Query('title') title: string): Promise<Books[]> {
     return this.booksService.searchByTitle(title);
-  }
-
-  @Get('genre/:genre')
-  getByGenre(@Param('genre') genre: string): Promise<Books[]> {
-    return this.booksService.getBooksByGenre(genre);
   }
 }
