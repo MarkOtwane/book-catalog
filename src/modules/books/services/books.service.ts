@@ -112,19 +112,6 @@ export class BooksService {
     return this.books[bookIndex];
   }
 
-  remove(book_number: string): { message: string } {
-    const bookIndex = this.books.findIndex(
-      (book) => book.book_number === book_number,
-    );
-    if (bookIndex === -1) {
-      throw new NotFoundException(`book with id ${book_number} not found`);
-    }
-
-    return {
-      message: `book ${this.books[bookIndex].title} checked out successfully`,
-    };
-  }
-
   delete(book_number: string): { message: string } {
     const bookIndex = this.books.findIndex(
       (book) => book.book_number === book_number,

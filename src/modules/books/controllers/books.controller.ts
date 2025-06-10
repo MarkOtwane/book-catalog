@@ -26,7 +26,7 @@ export class BooksController {
     return this.booksService.findAll();
   }
 
-  @Get(':book_number')
+  @Get('book_number/:book_number')
   findOne(@Param('book_number') book_number: string): Books {
     return this.booksService.findByBookNumber(book_number);
   }
@@ -36,7 +36,7 @@ export class BooksController {
     return this.booksService.findByAuthor(author);
   }
 
-  @Put(':book_number')
+  @Put('book_number/:book_number')
   update(
     @Param('book_number') book_number: string,
     @Body() data: BooksUpdateDto,
@@ -44,12 +44,7 @@ export class BooksController {
     return this.booksService.update(book_number, data);
   }
 
-  @Delete('checkout/:book_number')
-  remove(@Param('book_number') book_number: string): { message: string } {
-    return this.booksService.remove(book_number);
-  }
-
-  @Delete(':book_number')
+  @Delete('book_number/:book_number')
   delete(@Param('book_number') book_number: string): { message: string } {
     return this.booksService.delete(book_number);
   }

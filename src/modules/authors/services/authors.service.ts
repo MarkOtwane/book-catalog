@@ -107,22 +107,6 @@ export class AuthorsService {
     return this.authors[authorIndex];
   }
 
-  remove(name: string): { message: string } {
-    const authorIndex = this.authors.findIndex(
-      (author) => author.name === name,
-    );
-
-    if (authorIndex === -1) {
-      throw new NotFoundException(`Author ${name} not found`);
-    }
-
-    this.authors.splice(authorIndex, 1); // Actually removes it
-
-    return {
-      message: `Author ${name} deleted successfully`,
-    };
-  }
-
   delete(name: string): { message: string } {
     const authorIndex = this.authors.findIndex(
       (author) => author.name === name,
